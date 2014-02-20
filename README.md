@@ -10,6 +10,11 @@ Docker allows us to apply the SRP (single responsibility principle) to our deplo
 
 ## How it works
 
+Some lessons::
+
+* I chose to use [supervisord](http://supervisord.org/) to be the main entrypoint for each container because some processes don't handle `docker stop` commands well. e.g. `mongod` will not know how to handle the `SIGTERM` signal.
+* When I run the `mongodb` container, I mount a host volume. An alternative is to use [data only container](https://github.com/toffer/docker-data-only-container-demo) for the volumes.
+
 ### Build the images
 
 *Note* I will add the instructions for the `web` container soon.
@@ -27,4 +32,30 @@ raverun/mongodb  beta1   5cc91ce65ea3  25 hours ago  451.9 MB
 
 ### Run the images
 
-TBD
+Run the following in order.
+
+#### mongodb
+
+```sh
+$ docker run -d -expose 44444 --name="mongo" 
+             -v /home/me/hostdir:/mongowork:rw raverun/mongodb:beta1
+```
+
+#### twitter
+
+This container will poll twitter for air quality reports & saves to mongodb.
+
+```sh
+$ docker run -d -e CONSUMER_KEY=key -e CONSUMER_SECRET=secret1 
+                -e OAUTH_TOKEN=token -e OAUTH_TOKEN_SECRET=secret2 
+                -link mongo:mongolink raverun/poll:latest
+```
+The `-link` will inject the exposed ports & IP address into our `twitter` container. This is an example of the environment variables that wll be injected::
+
+```sh
+MONGOLINK_PORT=tcp://172.17.0.2:44444
+MONGOLINK_PORT_44444_TCP=tcp://172.17.0.2:44444
+MONGOLINK_PORT_44444_TCP_ADDR=172.17.0.2
+MONGOLINK_PORT_44444_TCP_PORT=44444
+MONGOLINK_PORT_44444_TCP_PROTO=tcp
+```
