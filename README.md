@@ -46,7 +46,7 @@ $ docker run -d -expose 44444 --name="mongo"
 This container will poll twitter for air quality reports & saves to mongodb.
 
 ```sh
-$ docker run -d -e CONSUMER_KEY=key -e CONSUMER_SECRET=secret1 
+$ docker run -d --name="tweeps" -e CONSUMER_KEY=key -e CONSUMER_SECRET=secret1 
                 -e OAUTH_TOKEN=token -e OAUTH_TOKEN_SECRET=secret2 
                 -link mongo:mongolink raverun/poll:latest
 ```
@@ -59,3 +59,26 @@ MONGOLINK_PORT_44444_TCP_ADDR=172.17.0.2
 MONGOLINK_PORT_44444_TCP_PORT=44444
 MONGOLINK_PORT_44444_TCP_PROTO=tcp
 ```
+#### summary
+
+You can see what is running::
+
+```sh
+$ docker ps
+
+CONTAINER ID  IMAGE                 COMMAND               STATUS        PORTS      NAMES
+29a4254dcd4e  raverun/poll:latest   /usr/bin/supervisord  Up 3 seconds             tweeps 
+5cc91ce65ea3  raverun/mongodb:beta1 usr/bin/mongod --con  Up 10 seconds 44444/tcp  mongo
+```
+
+You can send other signals to the running containers::
+```sh
+$ docker kill --signal=INT 5cc91ce65ea3
+```
+You can stop & restart::
+```sh
+$ docker stop 29a4254dcd4e   
+$ docker start 29a4254dcd4e 
+```
+
+> The end
